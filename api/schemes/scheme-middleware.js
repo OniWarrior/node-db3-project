@@ -1,3 +1,5 @@
+const Scheme = require('./scheme-model')
+
 /*
   If `scheme_id` does not exist in the database:
 
@@ -7,8 +9,24 @@
   }
 */
 const checkSchemeId = (req, res, next) => {
+  
+     Scheme.findById(req.params.scheme_id)
+    .then(scheme=>{
+      if(!scheme){
+        next({status:404,message:`scheme with scheme_id ${req.params.scheme_id} not found`})
+      }
+      else{
+        req.scheme = scheme          
+        next()
+      }
+      
+    })
+  
+ }
 
-}
+    
+
+
 
 /*
   If `scheme_name` is missing, empty string or not a string:
@@ -18,7 +36,18 @@ const checkSchemeId = (req, res, next) => {
     "message": "invalid scheme_name"
   }
 */
-const validateScheme = (req, res, next) => {
+const validateScheme = async(req, res, next) => {
+  try{
+    const {scheme_name}  = req.body
+    if(!scheme_name || scheme_name === " " || !isNaN(scheme_name)  ){
+      next({status:400, message:'invalid scheme_name'})
+    }
+    else{
+      next()
+    }
+  }catch(error){
+    next(error)
+  }
 
 }
 
@@ -31,7 +60,22 @@ const validateScheme = (req, res, next) => {
     "message": "invalid step"
   }
 */
-const validateStep = (req, res, next) => {
+const validateStep = async(req, res, next) => {
+  try{
+    const {instructions,step_number} = req.body
+    if(!instructions        ||  instructions===" " || 
+       !isNaN(instructions) || isNaN(step_number) ||
+       step_number < 1){
+
+           next({status:400,message: "invalid step"})
+    }
+    else{
+      next()
+    }
+  }catch(error){
+    next(error)
+  }
+
 
 }
 

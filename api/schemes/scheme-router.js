@@ -53,11 +53,38 @@ router.get('/', (req, res, next) => {
   }
 */
 router.get('/:scheme_id', checkSchemeId, (req, res, next) => {
-  const { scheme_id } = req.params
-
+  const  {scheme_id}  = req.params
+  
+  // I apologize but this is the only way I could think of to 
+  // format the data coming from the database.
   Schemes.findById(scheme_id)
     .then(scheme => {
-      res.json(scheme)
+      const formattedSchemes=[];
+      scheme.forEach(element => {   
+        if(element.step_id===null){
+          const aTempElement={
+            scheme_id:scheme_id,
+            scheme_name:element.scheme_name,
+            steps:[]
+          }
+          formattedSchemes.push(aTempElement)
+        }
+        else{
+          const tempElement={
+            scheme_id:element.scheme_id,
+            scheme_name:element.scheme_name,
+            steps:[{
+              step_id:element.step_id,
+              step_number:element.step_number,
+              instructions:element.instructions
+            }]          
+          } 
+          formattedSchemes.push(tempElement)  
+        }       
+      });
+      res.json(formattedSchemes)
+      
+     
     })
     .catch(next)
 })
@@ -86,7 +113,13 @@ router.get('/:scheme_id/steps', checkSchemeId, (req, res, next) => {
 
   Schemes.findSteps(scheme_id)
     .then(steps => {
-      res.json(steps)
+         steps.forEach(element=>{
+           if(element.step_id===null){
+             const emptySteps=[]
+             res.json(emptySteps)
+           }
+         })
+         res.json(steps)      
     })
     .catch(next)
 })
@@ -135,6 +168,8 @@ router.post('/:scheme_id/steps', checkSchemeId, validateStep, (req, res, next) =
 
   Schemes.addStep(scheme_id, step)
     .then(allSteps => {
+      
+      
       res.status(201).json(allSteps)
     })
     .catch(next)
